@@ -39,8 +39,8 @@ class Boid {
 
   update () {
     // Update velocity
-    this.vx += cos(-1*this.frads) * this.Force;
-    this.vy += sin(-1*this.frads) * this.Force;
+    this.vx += cos(-1*this.frads) * this.Force / this.mass;
+    this.vy += sin(-1*this.frads) * this.Force / this.mass;
 
     // see if speed limit is needed
 
@@ -55,21 +55,40 @@ class Boid {
 
   repulsion (listofBoids) {
     for (let boid of listofBoids) {
-      let dx = this.px - boid.px;
-      let dy = this.py - boid.py;
-      let dist = Math.sqrt(dx*dx + dy*dy);
-      if (dist < 100 && dist > 0) {
+      if (boid !== this) {
+        let dx = this.px - boid.px;
+        let dy = this.py - boid.py;
+        let dist = Math.sqrt(dx*dx + dy*dy);
+        if (dist < 100 && dist > 0) {
+          let angle = Math.atan2(dy, dx);
+          let fapplied = 5 / (dist * dist);
+
+          let fx = cos(angle) * fapplied;
+          let fy = sin(angle) * fapplied;
+
+          let initfx = cos(this.frads) * this.Force;
+          let initfy = sin(this.frads) * this.Force;
+
+          let totalfx = initfx + fx;
+          let totalfy = initfy + fy;
         
+          // vector addition
+          this.Force += Math.sqrt(totalfx*totalfx + totalfy*totalfy);
+          this.frads = Math.atan2(totalfy, totalfx);
+        }
+      }
+    }
   }
 
 }
 
 let boids = [];
-let boid1 = new Boid(200, 200, 1, 1);
-boids.push(boid1);1
-let boid2 = new Boid(300, 200, 1, 1);
+let boid1 = new Boid(200, 200, 0, 0);
+boids.push(boid1);
+let boid2 = new Boid(300, 200, 0, 0);
 boids.push(boid2);
-
+let boid3 = new Boid(100, 200, 0, 0);
+boids.push(boid3);
 
 function setup() {
   createCanvas(600, 600);
@@ -79,6 +98,7 @@ function draw() {
   background(0);
 
   for (let boid of boids) {
+    boid.repulsion(boids);
     boid.update();
     boid.draw();
   }
