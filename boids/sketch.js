@@ -5,13 +5,14 @@ class Boid {
   constructor(x, y) {
     this.px = x;
     this.py = y;
-    this.vx = 1;
-    this.vy = 1;
+    this.vx = 0;
+    this.vy = 0;
     this.maxSpeed = 4;
 
     // check if we need force limits
     this.Force = 0.1;
-    this.frads = -1;
+    this.frads = 0;  // direction of force application
+
 
     this.mass = 1;
 
@@ -38,8 +39,8 @@ class Boid {
 
   update () {
     // Update velocity
-    this.vx += 0;
-    this.vy += 0;
+    this.vx += cos(-1*this.frads) * this.Force;
+    this.vy += sin(-1*this.frads) * this.Force;
 
     // see if speed limit is needed
 
