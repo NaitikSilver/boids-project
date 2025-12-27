@@ -8,11 +8,11 @@ class Boid {
     this.vx = initVx;
     this.vy = initVy;
     this.maxSpeed = 4;
+    
 
     // check if we need force limits
     this.Force = 0;
     this.frads = 0;  // direction of force application
-
 
     this.mass = 1;
 
@@ -20,7 +20,7 @@ class Boid {
     this.sizey = 9;
 
     this.orientation = 0; // in radians
-
+    this.alidecay = 0.3; // constant for alignment angle decay
 
   }
 
@@ -42,7 +42,7 @@ class Boid {
     this.vx += cos(this.frads) * this.Force / this.mass;
     this.vy += sin(this.frads) * this.Force / this.mass;
 
-    // see if speed limit is needed
+    // add speed limit
 
     // Update position
     this.px += this.vx;
@@ -79,14 +79,32 @@ class Boid {
     }
   }
 
+  alignment (listofBoids) {
+    let totalangle = 0;
+    let count = 0;
+    for (let boid of listofBoids) {
+      if (boid !== this) {
+        totalangle += boid.orientation;
+        count += 1;
+      }  
+    }
+    let aveangle = totalangle / count;
+    this.orientation = 1/(aveangle - this.orientation) * aveangle * this.alidecay + this.orientation;
+
+  }
+
+  cohesion (listofBoids) {
+    // to be implemented
+  }
+
 }
 
 let boids = [];
-let boid1 = new Boid(200, 200, 0, 0);
+let boid1 = new Boid(200, 200, 0, 1);
 boids.push(boid1);
-let boid2 = new Boid(300, 200, 0, 0);
+let boid2 = new Boid(300, 200, 0, 1);
 boids.push(boid2);
-let boid3 = new Boid(250, 200, 0, 0);
+let boid3 = new Boid(250, 200, 0, 1);
 boids.push(boid3);
 
 function setup() {
@@ -97,7 +115,8 @@ function draw() {
   background(0);
 
   for (let boid of boids) {
-    boid.Force = 0;  
+    boid.Force = 0;
+    boid.alignment(boids);  
     boid.repulsion(boids);
     boid.update();
     boid.draw();
