@@ -86,7 +86,7 @@ class Boid {
           let angle = Math.atan2(dy, dx);
           const MIN_DIST = 5;
           const d = Math.max(dist, MIN_DIST);
-          let fapplied = 5 / (d * d);
+          let fapplied = 5 / (d);
           if (fapplied > this.maxFapplied) {
             fapplied = this.maxFapplied;
           }
@@ -133,7 +133,7 @@ class Boid {
   cohesion (listofBoids) {
     // to be implemented
 
-    
+
   }
 
 }
@@ -141,13 +141,13 @@ class Boid {
 let boids = [];
 let boid1 = new Boid(200, 100, 2, (Math.PI/2) - 1);
 boids.push(boid1);  
-let boid2 = new Boid(300, 200, 2, (Math.PI/2) + 2);
+let boid2 = new Boid(300, 200, 1, (Math.PI/2) + 2);
 boids.push(boid2);  
 let boid3 = new Boid(250, 100, 2, Math.PI/2);
 boids.push(boid3);
 let boid4 = new Boid(400, 300, 2, 0);
 boids.push(boid4);
-let boid5 = new Boid(500, 400, 2, Math.PI);
+let boid5 = new Boid(500, 400, 0, Math.PI);
 boids.push(boid5);
 
 function setup() {
