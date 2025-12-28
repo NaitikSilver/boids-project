@@ -1,14 +1,15 @@
 
+let alidecay = 0.3; // constant for alignment angle decay
 
 
 class Boid {
-  constructor(x, y, initVx = 0, initVy = 0) {
+  constructor(x, y, initSpeed = 0, initOrientation = 0) {
     this.px = x;
     this.py = y;
-    this.vx = initVx;
-    this.vy = initVy;
     this.maxSpeed = 4;
-    
+
+    this.vel = initSpeed;
+    this.orientation = initOrientation; // in radians
 
     // check if we need force limits
     this.Force = 0;
@@ -19,8 +20,6 @@ class Boid {
     this.sizex = 27;
     this.sizey = 9;
 
-    this.orientation = 0; // in radians
-    this.alidecay = 0.3; // constant for alignment angle decay
 
   }
 
@@ -38,19 +37,33 @@ class Boid {
   }
 
   update () {
-    // Update velocity
-    this.vx += cos(this.frads) * this.Force / this.mass;
-    this.vy += sin(this.frads) * this.Force / this.mass;
 
+    let vx = Math.cos(this.orientation) * this.vel;
+    let vy = Math.sin(this.orientation) * this.vel;
+
+    // Update velocity
+    vx += Math.cos(this.frads) * this.Force / this.mass;
+    vy += Math.sin(this.frads) * this.Force / this.mass;
     // add speed limit
 
-    // Update position
-    this.px += this.vx;
-    this.py += this.vy;
     // Update orientation to face direction of travel (radians)
-    if (this.vx !== 0 || this.vy !== 0) {
-      this.orientation = Math.atan2(this.vy, this.vx);
+    if (vx !== 0 || vy !== 0) {
+      this.orientation = Math.atan2(vy, vx);
     }
+
+      // Calculate and clamp speed
+    this.vel = Math.sqrt(vx*vx + vy*vy);
+    if (this.vel > this.maxSpeed) {
+      this.vel = this.maxSpeed;
+      // Renormalize velocity to match clamped speed
+      vx = Math.cos(this.orientation) * this.vel;
+      vy = Math.sin(this.orientation) * this.vel;
+    }
+
+    // Update position
+    this.px += vx;
+    this.py += vy;
+
   }
 
   repulsion (listofBoids) {
@@ -89,7 +102,7 @@ class Boid {
       }  
     }
     let aveangle = totalangle / count;
-    this.orientation = 1/(aveangle - this.orientation) * aveangle * this.alidecay + this.orientation;
+    this.orientation = 1/(aveangle - this.orientation) * aveangle * alidecay + this.orientation;
 
   }
 
@@ -100,11 +113,11 @@ class Boid {
 }
 
 let boids = [];
-let boid1 = new Boid(200, 200, 0, 1);
+let boid1 = new Boid(200, 200, 1, -Math.PI/2);
 boids.push(boid1);
-let boid2 = new Boid(300, 200, 0, 1);
+let boid2 = new Boid(300, 200, 1, -Math.PI/2);
 boids.push(boid2);
-let boid3 = new Boid(250, 200, 0, 1);
+let boid3 = new Boid(250, 200, 1, -Math.PI/2);
 boids.push(boid3);
 
 function setup() {
@@ -116,7 +129,7 @@ function draw() {
 
   for (let boid of boids) {
     boid.Force = 0;
-    boid.alignment(boids);  
+    //boid.alignment(boids);  
     boid.repulsion(boids);
     boid.update();
     boid.draw();
