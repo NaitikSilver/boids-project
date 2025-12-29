@@ -19,11 +19,8 @@ class Boid {
     this.vel = initSpeed;
     this.orientation = initOrientation; // in radians
 
-    this.mass = 1;
-
     this.sizex = 27;
     this.sizey = 9;
-
 
   }
 
@@ -102,12 +99,12 @@ class Boid {
       let diff = repulsionAngle - this.orientation;
       diff = Math.atan2(Math.sin(diff), Math.cos(diff));
 
-      this.orientation += diff * repdecay;  // Turn toward repulsion direction
+      this.orientation += diff * repdecay;  
     }
   }
 
   alignment (listofBoids) {
-    // Safe averaging of angles using unit-vector sum
+
     let sumX = 0;
     let sumY = 0;
     let count = 0;
@@ -134,38 +131,41 @@ class Boid {
 
   }
 
-  cohesion (listofBoids) {
-    // to be implemented
-    let sumX = 0;
-    let sumY = 0;
-    let count = 0;
-    for (let boid of listofBoids) {
-      if (boid !== this) {
-        let {dx, dy, dist} = this.toroidalDist(boid);
-        if (dist < 150 && dist > 0) {
-          sumX += boid.px;
-          sumY += boid.py;
-          count += 1;
-        }
+  cohesion(listofBoids) {
+  let sumX = 0;
+  let sumY = 0;
+  let count = 0;
+  for (let boid of listofBoids) {
+    if (boid !== this) {
+      let {dx, dy, dist} = this.toroidalDist(boid);
+      if (dist < 150 && dist > 0) {
+
+        sumX += this.px - dx;  
+        sumY += this.py - dy;
+        count += 1;
       }
     }
-    if (count === 0) return;
-    const aveX = sumX / count;
-    const aveY = sumY / count;
-    
-    let dx = aveX - this.px;
-    let dy = aveY - this.py;
-    let angleToCenter = Math.atan2(dy, dx);
-
-    // shortest angular difference
-    let diff = angleToCenter - this.orientation;
-    diff = Math.atan2(Math.sin(diff), Math.cos(diff));
-
-    // interpolate by cohdecay (treated as 0..1 strength)
-    const alpha = Math.max(0, Math.min(1, cohdecay));
-    this.orientation += diff * alpha;
-
   }
+  if (count === 0) return;
+  const aveX = sumX / count;
+  const aveY = sumY / count;
+  
+
+  let dx = aveX - this.px;
+  let dy = aveY - this.py;
+  
+
+  if (dx > LENGTH / 2) dx -= LENGTH;
+  if (dx < -LENGTH / 2) dx += LENGTH;
+  if (dy > WIDTH / 2) dy -= WIDTH;
+  if (dy < -WIDTH / 2) dy += WIDTH;
+  
+  let angleToCenter = Math.atan2(dy, dx);
+  let diff = angleToCenter - this.orientation;
+  diff = Math.atan2(Math.sin(diff), Math.cos(diff));
+  const alpha = Math.max(0, Math.min(1, cohdecay));
+  this.orientation += diff * alpha;
+}
 
 }
 
