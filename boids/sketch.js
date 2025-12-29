@@ -27,6 +27,7 @@ class Boid {
 
   }
 
+  // basic draw function
   draw() {
 
     push();
@@ -40,32 +41,15 @@ class Boid {
     pop();
   }
 
-  update () {
-
-    let vx = Math.cos(this.orientation) * this.vel;
-    let vy = Math.sin(this.orientation) * this.vel;
-
-
-    // Update orientation to face direction of travel (radians)
-    if (vx !== 0 || vy !== 0) {
-      this.orientation = Math.atan2(vy, vx);
-    }
-
-    if (!isFinite(this.orientation)) this.orientation = Math.PI;
-
-      // Calculate and clamp speed
-    this.vel = Math.sqrt(vx*vx + vy*vy);
-    if (this.vel > this.maxSpeed) {
+  update() {
+ 
+  if (this.vel > this.maxSpeed) {
       this.vel = this.maxSpeed;
-      // Renormalize velocity to match clamped speed
-      vx = Math.cos(this.orientation) * this.vel;
-      vy = Math.sin(this.orientation) * this.vel;
     }
+    
 
-    // Update position
-    this.px += vx;
-    this.py += vy;
-
+    this.px += Math.cos(this.orientation) * this.vel;
+    this.py += Math.sin(this.orientation) * this.vel;
   }
 
   boundries () {
@@ -75,15 +59,25 @@ class Boid {
     if (this.py > WIDTH) this.py = 0;
   }
 
+  toroidalDist(other) {
+    let dx = this.px - other.px;
+    let dy = this.py - other.py;
+    
+    if (dx > LENGTH / 2) dx -= LENGTH;
+    if (dx < -LENGTH / 2) dx += LENGTH;
+    if (dy > WIDTH / 2) dy -= WIDTH;
+    if (dy < -WIDTH / 2) dy += WIDTH;
+    
+    return { dx, dy, dist: Math.sqrt(dx*dx + dy*dy) };
+  }
+
   repulsion(listofBoids) {
     let rx = 0;
     let ry = 0;
     
     for (let boid of listofBoids) {
       if (boid !== this) {
-        let dx = this.px - boid.px;
-        let dy = this.py - boid.py;
-        let dist = Math.sqrt(dx*dx + dy*dy);
+        let {dx, dy, dist} = this.toroidalDist(boid);
         if (dist < 100 && dist > 0) {
           const MIN_DIST = 5;
           const d = Math.max(dist, MIN_DIST);
@@ -119,9 +113,12 @@ class Boid {
     let count = 0;
     for (let boid of listofBoids) {
       if (boid !== this) {
-        sumX += Math.cos(boid.orientation);
-        sumY += Math.sin(boid.orientation);
-        count += 1;
+        let {dx, dy, dist} = this.toroidalDist(boid);
+        if (dist < 150 && dist > 0) {
+          sumX += Math.cos(boid.orientation);
+          sumY += Math.sin(boid.orientation);
+          count += 1;
+        }
       }
     }
     if (count === 0) return;
@@ -144,9 +141,12 @@ class Boid {
     let count = 0;
     for (let boid of listofBoids) {
       if (boid !== this) {
-        sumX += boid.px;
-        sumY += boid.py;
-        count += 1;
+        let {dx, dy, dist} = this.toroidalDist(boid);
+        if (dist < 150 && dist > 0) {
+          sumX += boid.px;
+          sumY += boid.py;
+          count += 1;
+        }
       }
     }
     if (count === 0) return;
