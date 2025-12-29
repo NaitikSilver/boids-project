@@ -1,8 +1,9 @@
 
-let alidecay = 0.03; // constant for alignment angle decay
-let cohdecay = 0.01; // constant for cohesion angle decay
-let forcegrowth = 0.1; // constant for force growth for cohesion per frame
-let repforce = 0.1; // constant for repulsion force scaling
+let alidecay = 0.05; // constant for alignment angle decay
+let cohdecay = 0.04; // constant for cohesion angle decay
+let repforce = 1; // constant for repulsion force scaling
+let repdecay = 0.04; // constant for repulsion angle decay
+let maxRapplied = 5; // max repulsion applied
 
 let boidCount = 20;
 
@@ -17,10 +18,6 @@ class Boid {
 
     this.vel = initSpeed;
     this.orientation = initOrientation; // in radians
-
-    this.Force = 0;
-    this.frads = 0;  // direction of force application
-    this.maxFapplied = 5;
 
     this.mass = 1;
 
@@ -48,17 +45,13 @@ class Boid {
     let vx = Math.cos(this.orientation) * this.vel;
     let vy = Math.sin(this.orientation) * this.vel;
 
-    // Update velocity
-    vx += Math.cos(this.frads) * this.Force / this.mass;
-    vy += Math.sin(this.frads) * this.Force / this.mass;
-    // add speed limit
 
     // Update orientation to face direction of travel (radians)
     if (vx !== 0 || vy !== 0) {
       this.orientation = Math.atan2(vy, vx);
     }
 
-    if (!isFinite(this.orientation)) this.orientation = 0;
+    if (!isFinite(this.orientation)) this.orientation = Math.PI;
 
       // Calculate and clamp speed
     this.vel = Math.sqrt(vx*vx + vy*vy);
@@ -95,16 +88,14 @@ class Boid {
           const MIN_DIST = 5;
           const d = Math.max(dist, MIN_DIST);
           let strength = repforce / (d * d);
-          if (strength > this.maxFapplied) {
-            strength = this.maxFapplied;
+          if (strength > maxRapplied) {
+            strength = maxRapplied;
           }
           
           // Accumulate repulsion direction
           rx += (dx / dist) * strength;
           ry += (dy / dist) * strength;
 
-          // Slow down when avoiding
-          this.Force -= 0.02 * strength;
         }
       }
     }
@@ -117,7 +108,7 @@ class Boid {
       let diff = repulsionAngle - this.orientation;
       diff = Math.atan2(Math.sin(diff), Math.cos(diff));
 
-      this.orientation += diff * 0.3;  // Turn toward repulsion direction
+      this.orientation += diff * repdecay;  // Turn toward repulsion direction
     }
   }
 
@@ -174,7 +165,6 @@ class Boid {
     const alpha = Math.max(0, Math.min(1, cohdecay));
     this.orientation += diff * alpha;
 
-    this.Force += forcegrowth;
   }
 
 }
@@ -195,7 +185,6 @@ function draw() {
   background(0);
 
   for (let boid of boids) {
-    boid.Force = 0;
     boid.cohesion(boids);  
     boid.alignment(boids);
     boid.repulsion(boids);
